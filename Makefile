@@ -32,9 +32,8 @@ $(TARGET).elf: $(SRC_C) $(STARTUP) $(LINKER_SCRIPT)
 $(TARGET).bin: $(TARGET).elf
 	$(OBJCOPY) -O binary $< $@
 
-# -l > $(TRACE)/trace.log 2>&1 
 trace: $(TARGET).elf
-	$(SPIKE) --instructions=1000 -l $(TARGET).elf > $(TRACE)/trace.log 2>&1 
+	$(SPIKE) --instructions=1000 -l --log=$(TRACE)/trace.log $(TARGET).elf
 
 clean:
 	rm -fr $(PROGRAM)/* $(TRACE)/*
