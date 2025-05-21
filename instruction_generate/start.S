@@ -16,7 +16,4 @@ _start:
 2:
     /* Call main */
     call main
-
-    /* Halt if main returns */
-1:
-    j 1b
+    call _Exit

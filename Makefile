@@ -7,9 +7,12 @@ OBJCOPY = $(RISCV_PREFIX)objcopy
 
 INSTGEN = instruction_generate
 PROGRAM = $(INSTGEN)/output
+TRACE = $(INSTGEN)/trace
+SPIKE = riscv-tools/riscv-isa-sim/build/spike
 
-# Ensure output directory exists
+# Ensure output and trace directories exist
 $(shell mkdir -p $(PROGRAM))
+$(shell mkdir -p $(TRACE))
 
 # Source files
 SRC_C = test_program.c
@@ -21,7 +24,7 @@ TARGET = $(PROGRAM)/program
 CFLAGS = -march=rv64imac -mabi=lp64 -static -mcmodel=medany \
          -fvisibility=hidden -nostdlib -nostartfiles -O2
 
-all: $(TARGET).bin
+all: $(TARGET).bin trace
 
 $(TARGET).elf: $(SRC_C) $(STARTUP) $(LINKER_SCRIPT)
 	$(CC) $(CFLAGS) -T $(LINKER_SCRIPT) $(STARTUP) $(SRC_C) -o $@
@@ -29,7 +32,10 @@ $(TARGET).elf: $(SRC_C) $(STARTUP) $(LINKER_SCRIPT)
 $(TARGET).bin: $(TARGET).elf
 	$(OBJCOPY) -O binary $< $@
 
-clean:
-	rm -fr $(PROGRAM)/*
+trace: $(TARGET).elf
+	$(SPIKE) -l $(TARGET).elf > $(TRACE)/trace.log 2>&1
 
-.PHONY: all clean
+clean:
+	rm -fr $(PROGRAM)/* $(TRACE)/*
+
+.PHONY: all clean trace
