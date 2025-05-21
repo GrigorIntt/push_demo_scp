@@ -1,2 +1,3 @@
-output/
-trace/
+output
+trace
+riscv-tools
