@@ -19,10 +19,13 @@ SRC_C = test_program.c
 STARTUP = $(INSTGEN)/start.S
 LINKER_SCRIPT = $(INSTGEN)/linker.ld 
 TARGET = $(PROGRAM)/program
+CMD_FILE = $(INSTGEN)/spike_drive.cmd
+INCLUDE_DIR = src
 
 # Compilation flags
-CFLAGS = -march=rv64imac -mabi=lp64 -static -mcmodel=medany \
-         -fvisibility=hidden -nostdlib -nostartfiles -O2
+CFLAGS = -march=rv64imac_zicsr -mabi=lp64 -static -mcmodel=medany \
+         -fvisibility=hidden -nostdlib -nostartfiles -O2 \
+		 -I$(INCLUDE_DIR)
 
 all: $(TARGET).bin trace
 
@@ -33,7 +36,11 @@ $(TARGET).bin: $(TARGET).elf
 	$(OBJCOPY) -O binary $< $@
 
 trace: $(TARGET).elf
-	$(SPIKE) --instructions=1000 -l --log=$(TRACE)/trace.log $(TARGET).elf
+	$(SPIKE) \
+		--instructions=1000 \
+		-l --log=$(TRACE)/trace.log \
+		-d --debug-cmd=${CMD_FILE} \
+		$(TARGET).elf > $(TRACE)/output.log
 
 clean:
 	rm -fr $(PROGRAM)/* $(TRACE)/*
