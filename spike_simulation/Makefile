@@ -3,23 +3,17 @@ RISCV_PREFIX ?= riscv64-unknown-elf-
 CC = $(RISCV_PREFIX)gcc
 OBJCOPY = $(RISCV_PREFIX)objcopy
 
-SIM = simulation
-INSTGEN = instruction_generate
-PROGRAM = $(INSTGEN)/output
-TRACE = $(INSTGEN)/trace
-SPIKE = riscv-tools/riscv-isa-sim/build/spike
-
-# Ensure output and trace directories exist
-$(shell mkdir -p $(PROGRAM))
-$(shell mkdir -p $(TRACE))
+PROGRAM = compile
+TRACE = trace
+SPIKE = $(PARENT_DIR)/riscv-tools/riscv-isa-sim/build/spike
 
 # Source files
-SRC_C = test_program.c
-STARTUP = $(INSTGEN)/start.S
-LINKER_SCRIPT = $(INSTGEN)/linker.ld 
+STARTUP = start.S
+LINKER_SCRIPT = linker.ld 
+
 TARGET = $(PROGRAM)/program
-CMD_FILE = $(INSTGEN)/spike_drive.cmd
-INCLUDE_DIR = src
+CMD_FILE = spike_drive.cmd
+SRC_C = $(PARENT_DIR)/$C
 
 # Compilation flags
 CFLAGS = -march=rv64imac_zicsr -mabi=lp64 -static -mcmodel=medany \
@@ -28,18 +22,19 @@ CFLAGS = -march=rv64imac_zicsr -mabi=lp64 -static -mcmodel=medany \
 
 all: $(TARGET).bin trace
 
-
 $(TARGET).elf: $(SRC_C) $(STARTUP) $(LINKER_SCRIPT)
+	mkdir -p $(PROGRAM)
 	$(CC) $(CFLAGS) -T $(LINKER_SCRIPT) $(STARTUP) $(SRC_C) -o $@
 
 $(TARGET).bin: $(TARGET).elf
 	$(OBJCOPY) -O binary $< $@
 
 trace: $(TARGET).elf
+	mkdir -p $(OUTDIR)
 	$(SPIKE) \
-		--instructions=1000 \
-		-l --log=$(TRACE)/trace.log \
-		$(TARGET).elf 2>&1 | tee $(TRACE)/output.log
+		--instructions=100 \
+		-l --log=$(OUTDIR)/trace.log \
+		$(TARGET).elf 2>&1 | tee $(OUTDIR)/output.log
 
 debug: $(TARGET).elf
 	$(SPIKE) \
