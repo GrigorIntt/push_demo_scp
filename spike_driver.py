@@ -34,13 +34,14 @@ def run_spike(spike_path, elf_path, logger):
             cmd,
             stdin=subprocess.PIPE,    # Enables writing commands
             stdout=subprocess.PIPE,   # Enables reading output
+            stderr=subprocess.PIPE,
             text=True,                # Work with strings (not bytes)
             bufsize=10                # Line buffering
         )
         # while True:
         # logger.info(output)
         print("START")
-        proc.stdin.write("reg 0\n")
+        proc.stderr.write("reg 0\n")
         # output = proc.stdout.readline()
         # output = proc.stderr.readline()
         # print("=====> ", output)

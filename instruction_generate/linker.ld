@@ -41,4 +41,6 @@ SECTIONS {
     .fromhost : {
         fromhost = .;
     } > RAM
+
+    _end = .;
 }

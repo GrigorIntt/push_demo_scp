@@ -39,8 +39,23 @@ trace: $(TARGET).elf
 	$(SPIKE) \
 		--instructions=1000 \
 		-l --log=$(TRACE)/trace.log \
+		$(TARGET).elf 2>&1 | tee $(TRACE)/output.log
+
+debug: $(TARGET).elf
+	$(SPIKE) \
+		-l --log=$(TRACE)/trace.log \
 		-d --debug-cmd=${CMD_FILE} \
-		$(TARGET).elf > $(TRACE)/output.log
+		$(TARGET).elf 2>&1 | tee $(TRACE)/output.log
+
+manual: $(TARGET).elf
+	$(SPIKE) \
+		-l --log=$(TRACE)/trace.log \
+		-d \
+		$(TARGET).elf
+
+python: $(TARGET).elf
+	python3 spike_driver.py $(SPIKE) $(TARGET).elf $(TRACE)/output.log
+
 
 clean:
 	rm -fr $(PROGRAM)/* $(TRACE)/*
