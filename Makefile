@@ -1,8 +1,6 @@
 DESIGN = $(PWD)/design
 INCLUDE = $(PWD)/design/include
 
-OUTPUT = out
-
 SIM = simulation
 SIM_OUT = $(SIM)/output/trace.log
 
@@ -12,16 +10,18 @@ SPIKE_OUT = $(SPK)/output/trace.log
 all: $(SIM_OUT) $(SPIKE_OUT)
 
 $(SIM_OUT):
-	make -C $(SIM) DESIGN=$(DESIGN) INCLUDE=$(INCLUDE) OUTDIR=$(OUTPUT)
+	make -C $(SIM) DESIGN=$(DESIGN) INCLUDE=$(INCLUDE)
 
 $(SPIKE_OUT):
-	make -C $(SPK) PARENT_DIR=$(PWD) C_CODE="test_program.c" OUTDIR=$(OUTPUT)
+	make -C $(SPK) PARENT_DIR=$(PWD) C_CODE="test_program.c"
 
+drive:
+	make -C $(SPK) python
 
 clean: clean_spike clean_sim
 
 clean_spike:
-	make -C $(SPK) OUTDIR=$(OUTPUT) clean
+	make -C $(SPK) clean
 
 clean_sim:
-	make -C $(SIM) OUTDIR=$(OUTPUT) clean
+	make -C $(SIM) clean

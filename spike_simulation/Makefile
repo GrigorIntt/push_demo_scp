@@ -3,6 +3,8 @@ RISCV_PREFIX ?= riscv32-unknown-elf-
 CC = $(RISCV_PREFIX)gcc
 OBJCOPY = $(RISCV_PREFIX)objcopy
 
+OUTDIR = compile
+
 PROGRAM = compile
 TRACE = trace
 SPIKE = $(PARENT_DIR)/riscv-tools/riscv-isa-sim/build/spike
@@ -23,21 +25,10 @@ ifdef INCLUDE_DIR
 CFLAGS += -I$(INCLUDE_DIR)
 endif
 
-		 
-
 all: $(TARGET).bin trace
-
-# $(TARGET).elf: $(SRC_C) $(STARTUP) $(LINKER_SCRIPT)
-# 	mkdir -p $(PROGRAM)
-# 	$(CC) $(CFLAGS) -T $(LINKER_SCRIPT) $(STARTUP) $(SRC_C) -o $@
 
 $(TARGET).elf: $(SRC_C) $(STARTUP) $(LINKER_SCRIPT)
 	mkdir -p $(PROGRAM)
-	@echo "Building ELF from:"
-	@echo "  C_CODE=$(C_CODE)"
-	@echo "  SRC_C=$(SRC_C)"
-	@echo "  STARTUP=$(STARTUP)"
-	@echo "  LINKER_SCRIPT=$(LINKER_SCRIPT)"
 	$(CC) $(CFLAGS) -T $(LINKER_SCRIPT) $(STARTUP) $(SRC_C) -o $@
 
 
