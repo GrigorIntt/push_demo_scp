@@ -3,7 +3,7 @@ from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer, FallingEdge
 from cocotb.binary import BinaryValue, BinaryRepresentation
 
-from utils import format_riscv_instruction, riscv_binary_to_assembly
+# from utils import format_riscv_instruction, riscv_binary_to_assembly
 
 @cocotb.test()
 async def test_vector_assignment(dut):
@@ -18,8 +18,8 @@ async def test_vector_assignment(dut):
     for i, inst_hex_str in enumerate(insts):
         inst_bin_str = format(int(inst_hex_str, 16), '032b')
         dut.IM.instruction_memory[i].value = BinaryValue(inst_bin_str, n_bits=32)
-        legal, inst_assembly = riscv_binary_to_assembly(inst_bin_str)
-        print(f'{i:<5} {inst_bin_str} -> {inst_assembly}', file=log)
+        # legal, inst_assembly = riscv_binary_to_assembly(inst_bin_str)
+        # print(f'{i:<5} {inst_bin_str} -> {inst_assembly}', file=log)
     
     print(file=log)
 
@@ -30,17 +30,18 @@ async def test_vector_assignment(dut):
 
     for i in range(10):
         await RisingEdge(dut.clk)
-        legal, inst_assembly = riscv_binary_to_assembly(str(dut.instruction.value))
+        # legal, inst_assembly = riscv_binary_to_assembly(str(dut.instruction.value))
 
         print(f'{i:<5} {dut.addr.value.integer:<10} {inst_assembly}', file=log)
 
     print(file=log)
     
     for i, inst_in_memory in sv_enumerate(dut.IM.instruction_memory, 1):
-        legal, inst_assembly = riscv_binary_to_assembly(str(inst_in_memory.value))
-        if not legal:
-            continue
-        print(f'{i:<5} == {inst_assembly}', file=log)
+        pass
+        # legal, inst_assembly = riscv_binary_to_assembly(str(inst_in_memory.value))
+        # if not legal:
+        #     continue
+        # print(f'{i:<5} == {inst_assembly}', file=log)
 
 
     # await Timer(100, 'ns')

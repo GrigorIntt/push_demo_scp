@@ -10,8 +10,8 @@ _start:
     la a1, __bss_end
     bgeu a0, a1, 2f
 1:
-    sd zero, (a0)
-    addi a0, a0, 8
+    sw zero, 0(a0)
+    addi a0, a0, 4
     bltu a0, a1, 1b
 2:
     /* Call main */

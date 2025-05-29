@@ -1,5 +1,5 @@
 # Toolchain configuration
-RISCV_PREFIX ?= riscv64-unknown-elf-
+RISCV_PREFIX ?= riscv32-unknown-elf-
 CC = $(RISCV_PREFIX)gcc
 OBJCOPY = $(RISCV_PREFIX)objcopy
 
@@ -13,18 +13,33 @@ LINKER_SCRIPT = linker.ld
 
 TARGET = $(PROGRAM)/program
 CMD_FILE = spike_drive.cmd
-SRC_C = $(PARENT_DIR)/$C
+SRC_C = $(PARENT_DIR)/$(C_CODE)
 
 # Compilation flags
-CFLAGS = -march=rv64imac_zicsr -mabi=lp64 -static -mcmodel=medany \
-         -fvisibility=hidden -nostdlib -nostartfiles -O2 \
-		 -I$(INCLUDE_DIR)
+CFLAGS = -march=rv32imac_zicsr -mabi=ilp32 -static -mcmodel=medany \
+         -fvisibility=hidden -nostdlib -nostartfiles -O2
+
+ifdef INCLUDE_DIR
+CFLAGS += -I$(INCLUDE_DIR)
+endif
+
+		 
 
 all: $(TARGET).bin trace
 
+# $(TARGET).elf: $(SRC_C) $(STARTUP) $(LINKER_SCRIPT)
+# 	mkdir -p $(PROGRAM)
+# 	$(CC) $(CFLAGS) -T $(LINKER_SCRIPT) $(STARTUP) $(SRC_C) -o $@
+
 $(TARGET).elf: $(SRC_C) $(STARTUP) $(LINKER_SCRIPT)
 	mkdir -p $(PROGRAM)
+	@echo "Building ELF from:"
+	@echo "  C_CODE=$(C_CODE)"
+	@echo "  SRC_C=$(SRC_C)"
+	@echo "  STARTUP=$(STARTUP)"
+	@echo "  LINKER_SCRIPT=$(LINKER_SCRIPT)"
 	$(CC) $(CFLAGS) -T $(LINKER_SCRIPT) $(STARTUP) $(SRC_C) -o $@
+
 
 $(TARGET).bin: $(TARGET).elf
 	$(OBJCOPY) -O binary $< $@
@@ -32,6 +47,7 @@ $(TARGET).bin: $(TARGET).elf
 trace: $(TARGET).elf
 	mkdir -p $(OUTDIR)
 	$(SPIKE) \
+		--isa=RV32IMAFDC \
 		--instructions=100 \
 		-l --log=$(OUTDIR)/trace.log \
 		$(TARGET).elf 2>&1 | tee $(OUTDIR)/output.log
@@ -54,6 +70,5 @@ python: $(TARGET).elf
 
 clean:
 	rm -fr $(PROGRAM)/* $(TRACE)/*
-	make -C $(SIM) clean
 
 .PHONY: all clean trace

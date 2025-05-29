@@ -1,3 +1,6 @@
+from elftools.elf.elffile import ELFFile
+from elftools.elf.sections import SymbolTableSection
+
 def format_riscv_instruction(bin_str:str, reverse=False):
     """Format a RISC-V binary instruction string into a readable representation.
     
@@ -201,3 +204,32 @@ def riscv_binary_to_assembly(binary_str):
     
     # If no match found
     return False, f"Unknown instruction: {binary_str}"
+
+def read_elf_instructions(file_path, arch=32):
+    with open(file_path, 'rb') as f:
+        elf = ELFFile(f)
+        
+        # Find the text section (where code typically resides)
+        text_section = elf.get_section_by_name('.text')
+        # text_section = [s.name for s in elf.iter_sections()]
+        # print(text_section)
+        if not text_section:
+            raise ValueError("No .text section found in ELF file")
+            
+        data = text_section.data()
+        
+        ind = arch // 8
+        instructions = []
+        for i in range(0, len(data), ind):
+            instruction_bytes = data[i:i+ind]
+            if len(instruction_bytes) < ind:
+                break
+            instruction = int.from_bytes(instruction_bytes, byteorder='little')
+            pc = text_section['sh_addr'] + i
+            instructions.append((
+                pc,
+                instruction,
+                instruction_bytes
+            ))
+            
+        return instructions, data, arch

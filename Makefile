@@ -15,8 +15,13 @@ $(SIM_OUT):
 	make -C $(SIM) DESIGN=$(DESIGN) INCLUDE=$(INCLUDE) OUTDIR=$(OUTPUT)
 
 $(SPIKE_OUT):
-	make -C $(SPK) PARENT_DIR=$(PWD) C=test_program.c OUTDIR=$(OUTPUT)
+	make -C $(SPK) PARENT_DIR=$(PWD) C_CODE="test_program.c" OUTDIR=$(OUTPUT)
 
-clean:
-	make -C $(SIM) OUTDIR=$(OUTPUT) clean
+
+clean: clean_spike clean_sim
+
+clean_spike:
 	make -C $(SPK) OUTDIR=$(OUTPUT) clean
+
+clean_sim:
+	make -C $(SIM) OUTDIR=$(OUTPUT) clean

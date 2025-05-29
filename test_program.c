@@ -13,7 +13,14 @@ int main() {
     int a = 5;
     int b = 3;
     int c = a + b;
-    int d = a - b + a + c;
+    int d;
+
+    if (c == 8)
+        d = 1;
+    else
+        d = 0;
+
     int e = a << b;
+    int f = e * c;
     return 0;
 }
