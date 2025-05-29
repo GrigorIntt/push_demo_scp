@@ -3,9 +3,9 @@ RISCV_PREFIX ?= riscv32-unknown-elf-
 CC = $(RISCV_PREFIX)gcc
 OBJCOPY = $(RISCV_PREFIX)objcopy
 
-OUTDIR = compile
-
+OUTDIR = output
 PROGRAM = compile
+
 TRACE = trace
 SPIKE = $(PARENT_DIR)/riscv-tools/riscv-isa-sim/build/spike
 

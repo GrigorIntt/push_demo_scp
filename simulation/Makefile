@@ -4,7 +4,7 @@ TOPLEVEL = SCP
 MODULE = test_my_dut
 VERILOG_SOURCES := $(shell find $(DESIGN) -name '*.sv')
 
-OUTDIR = "output"
+OUTDIR = output
 
 # # Print each Verilog source on a new line (Make 4.0+)
 # $(info )
