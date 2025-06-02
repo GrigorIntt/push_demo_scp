@@ -42,14 +42,14 @@ compile:
 drive:
 	make -C $(SPK) python
 
-clean: clean_spk clean_sim
+clean: spk_clean sim_clean
 	rm -fr $(COMPILE_DIR)
 	rm -f $(SPIKE_OUT) $(SIM_OUT)
 
-clean_spk:
+spk_clean:
 	make -C $(SPK) clean
 
-clean_sim:
+sim_clean:
 	make -C $(SIM) clean
 
-.PHONY: clean clean_sim clean_spk spk sim compile
+.PHONY: clean sim_clean spk_clean spk sim compile

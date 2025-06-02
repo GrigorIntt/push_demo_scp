@@ -233,3 +233,11 @@ def read_elf_instructions(file_path, arch=32):
             ))
             
         return instructions, data, arch
+
+
+def sv_enumerate(sv_array, force_ascending=False): 
+    # if force_ascending is True you will lost the real indexing diection
+    start_index, end_index = sv_array._range
+    inc = 1 if start_index < end_index else -1 # Define the incerment direction
+    for i in range(start_index, end_index + inc, inc)[::inc if force_ascending else 1]:
+        yield i, sv_array[i]

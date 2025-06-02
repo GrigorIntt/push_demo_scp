@@ -2,30 +2,47 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer, FallingEdge
 from cocotb.binary import BinaryValue, BinaryRepresentation
+import os
 
-from utils import read_elf_instructions
+from utils import read_elf_instructions, sv_enumerate
+
+from capstone import *
+
 
 @cocotb.test()
 async def test_vector_assignment(dut):
-    log = open_py_log_file()
-    insts = read_elf_()
+    elf = os.getenv("ELF")
+
+    log_trace = open('trace.log', 'w')
+    log_write = open('write.log', 'w')
+    
+    insts, data, arch = read_elf_instructions(elf)
 
     # Start a 10ns period clock on 'clk'
     cocotb.start_soon(Clock(dut.clk, 10, units="ns").start())
 
-    for i, inst_hex_str in enumerate(insts):
-        inst_bin_str = format(int(inst_hex_str, 16), '032b')
-        dut.IM.instruction_memory[i].value = BinaryValue(inst_bin_str, n_bits=32)
-        # legal, inst_assembly = riscv_binary_to_assembly(inst_bin_str)
-        # print(f'{i:<5} {inst_bin_str} -> {inst_assembly}', file=log)
     
-    print(file=log)
+    md = Cs(CS_ARCH_RISCV, CS_MODE_RISCV32)
+
+    for i, (addr, inst, ibytes) in enumerate(insts):
+        
+        out = [*md.disasm(ibytes, 0)]
+        print(f"ADDR: {addr:08x}", end=" | ", file=log_write)
+        print(f"INST: {inst:08x}", end=" | ", file=log_write)
+        if len(out) > 0:
+            inst_bin_str = format(inst, '032b')
+            dut.IM.instruction_memory[i].value = BinaryValue(inst_bin_str, n_bits=32)
+            for i in out:
+                print(f"READ: {i.mnemonic} {i.op_str}", file=log_write)
+        else:
+            print("XXX SKIPPED XXX", file=log_write)
+    
 
     dut.rst.value = 1
     await Timer(10)
     dut.rst.value = 0
     
-
+    return 0
     for i in range(10):
         await RisingEdge(dut.clk)
         # legal, inst_assembly = riscv_binary_to_assembly(str(dut.instruction.value))
@@ -63,16 +80,6 @@ async def test_vector_assignment(dut):
 
 
     log.close()
-    
-def open_py_log_file():
-    return open('trace.log', 'w')
 
 def enchant_binary_instr(inst:str):
     return inst
-
-def sv_enumerate(sv_array, force_ascending=False): 
-    # if force_ascending is True you will lost the real indexing diection
-    start_index, end_index = sv_array._range
-    inc = 1 if start_index < end_index else -1 # Define the incerment direction
-    for i in range(start_index, end_index + inc, inc)[::inc if force_ascending else 1]:
-        yield i, sv_array[i]

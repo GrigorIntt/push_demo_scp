@@ -2,7 +2,7 @@ from capstone import *
 from utils import read_elf_instructions
 
 md = Cs(CS_ARCH_RISCV, CS_MODE_RISCV32)
-elf_instructions, data, arch = read_elf_instructions('spike_simulation/compile/program.elf')
+elf_instructions, data, arch = read_elf_instructions('compile/target.elf')
 # for addr, inst16, inst2 in elf_instructions:
 
 print(data)
