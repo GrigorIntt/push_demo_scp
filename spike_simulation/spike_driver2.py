@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 import sys
-import subprocess
+import pexpect
 import logging
-from datetime import datetime
+from tqdm import tqdm
+import re
+from io import StringIO, BytesIO
+import os
+
+
 
 def setup_logging(log_file):
     """Configure dual console+file logging"""
@@ -28,21 +33,25 @@ def setup_logging(log_file):
 def run_spike(spike_path, elf_path, logger):
     cmd = [spike_path, "-d", "--log-commits", "--isa=RV32IMAFDC", elf_path]
     logger.debug(f"Starting SPIKE: {' '.join(cmd)}")
-    
-    try:
-        proc = subprocess.Popen(
-            cmd,
-            text=True,                # Work with strings (not bytes)
-            bufsize=10                # Line buffering
-        )
-        # while True:
-        # logger.info(output)
-        print("START")
+    outlog_r = BytesIO()
 
-        while True:
-            line = proc.stderr.readline(1000)
-            print(line.rstrip())
-            input("Press enter for next step...")
+    # try:
+    child = pexpect.spawn(' '.join(cmd))
+    child.logfile_read = outlog_r
+
+    while True:
+        child.expect("spike")
+        child.sendline("r 1")
+
+        lines = str(outlog_r.getvalue(), encoding='utf-8').split(os.linesep)
+        for line in lines:
+            if re.fullmatch(r'core   0: 0x[0-9a-f]', line.strip()):
+                print(f"===> {line}")
+            else:
+                print(f'---> {line}')
+        
+        input("")
+
 
         # proc.stderr.write("q\n")
         # for i in range(100):
@@ -66,10 +75,10 @@ def run_spike(spike_path, elf_path, logger):
         #         if "core" in output:
         #             logger.info(output.strip())
         
-        return proc.poll()
-    except Exception as e:
-        logger.error(f"SPIKE execution failed: {str(e)}")
-        return 1
+        # return proc.poll()
+    # except Exception as e:
+    #     logger.error(f"SPIKE execution failed: {str(e)}")
+    #     return 1
 
 def main():
     if len(sys.argv) != 4:

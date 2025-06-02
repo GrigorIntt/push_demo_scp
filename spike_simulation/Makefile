@@ -1,38 +1,10 @@
-# Toolchain configuration
-RISCV_PREFIX ?= riscv32-unknown-elf-
-CC = $(RISCV_PREFIX)gcc
-OBJCOPY = $(RISCV_PREFIX)objcopy
-
 OUTDIR = output
-PROGRAM = compile
 
 SPIKE = $(PARENT_DIR)/riscv-tools/riscv-isa-sim/build/spike
 
-# Source files
-STARTUP = start.S
-LINKER_SCRIPT = linker.ld 
-
-TARGET = $(PROGRAM)/program
 CMD_FILE = spike_drive.cmd
-SRC_C = $(PARENT_DIR)/$(C_CODE)
 
-# Compilation flags
-CFLAGS = -march=rv32imac_zicsr -mabi=ilp32 -static -mcmodel=medany \
-         -fvisibility=hidden -nostdlib -nostartfiles -O2
-
-ifdef INCLUDE_DIR
-CFLAGS += -I$(INCLUDE_DIR)
-endif
-
-all: $(TARGET).bin trace
-
-$(TARGET).elf: $(SRC_C) $(STARTUP) $(LINKER_SCRIPT)
-	mkdir -p $(PROGRAM)
-	$(CC) $(CFLAGS) -T $(LINKER_SCRIPT) $(STARTUP) $(SRC_C) -o $@
-
-
-$(TARGET).bin: $(TARGET).elf
-	$(OBJCOPY) -O binary $< $@
+all: trace
 
 trace: $(TARGET).elf
 	mkdir -p $(OUTDIR)
@@ -59,6 +31,6 @@ python: $(TARGET).elf
 
 
 clean:
-	rm -fr $(PROGRAM)/* $(OUTDIR)/*
+	rm -fr $(OUTDIR)
 
 .PHONY: all clean trace
