@@ -20,23 +20,27 @@ endif
 DESIGN = $(PWD)/design
 INCLUDE = $(PWD)/design/include
 
+TRACE = trace.log
+
 SIM = simulation
-SIM_OUT = $(SIM)/output/trace.log
+SIM_OUT = $(SIM)/$(TRACE)
 
 SPK = spike_simulation
-SPIKE_OUT = $(SPK)/output/trace.log
+SPIKE_OUT = $(SPK)/$(TRACE)
 
-all: compile sim spk
+all: compile spk sim
 
-sim:
-	make -C $(SIM) PARENT_DIR=$(PWD) DESIGN=$(DESIGN) TARGET=$(TARGET) INCLUDE=$(INCLUDE)
+spk: 
+	make -C $(SPK) PARENT_DIR=$(PWD) TARGET=$(TARGET) TRACE=$(TRACE)
 
-spk:
-	make -C $(SPK) PARENT_DIR=$(PWD) TARGET=$(TARGET)
+sim: spk
+	make -C $(SIM) PARENT_DIR=$(PWD) TARGET=$(TARGET) TRACE=$(TRACE) \
+	DESIGN=$(DESIGN) INCLUDE=$(INCLUDE)
 
 compile:
 	mkdir -p $(COMPILE_DIR)
 	$(CC) $(CFLAGS) -T $(LINKER_SCRIPT) $(STARTUP) $(SRC_C) -o $(TARGET).elf
+# $(CC) -o $(TARGET).elf $(SRC_C)
 	$(OBJCOPY) -O binary $(TARGET).elf $(TARGET).bin
 
 drive:

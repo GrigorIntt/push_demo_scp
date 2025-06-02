@@ -1,9 +1,9 @@
 out/
 output/
 trace/
+trace.log
 compile/
+sim_build/
 # riscv-tools
 __pycache__
-sim_build
 .venv
-spike_simulation/compile/

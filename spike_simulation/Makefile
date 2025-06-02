@@ -1,8 +1,7 @@
-OUTDIR = output
-
 SPIKE = $(PARENT_DIR)/riscv-tools/riscv-isa-sim/build/spike
 ELF = $(PARENT_DIR)/$(TARGET).elf
 CMD_FILE = spike_drive.cmd
+OUTDIR = output
 
 all: trace
 
@@ -11,7 +10,7 @@ trace:
 	$(SPIKE) \
 		--isa=RV32IMAFDC \
 		--instructions=100 \
-		-l --log=$(OUTDIR)/trace.log \
+		-l --log=$(TRACE) \
 		$(ELF) 2>&1 | tee $(OUTDIR)/output.log
 
 debug:

@@ -1,5 +1,6 @@
 from elftools.elf.elffile import ELFFile
 from elftools.elf.sections import SymbolTableSection
+import re
 
 def format_riscv_instruction(bin_str:str, reverse=False):
     """Format a RISC-V binary instruction string into a readable representation.
@@ -241,3 +242,17 @@ def sv_enumerate(sv_array, force_ascending=False):
     inc = 1 if start_index < end_index else -1 # Define the incerment direction
     for i in range(start_index, end_index + inc, inc)[::inc if force_ascending else 1]:
         yield i, sv_array[i]
+
+def parse_spike_trace_to_dict(file_path):
+    result = {}
+    pattern = re.compile(r'0x[0-9a-fA-F]+')
+
+    with open(file_path, 'r') as file:
+        for line in file:
+            matches = pattern.findall(line)
+            if len(matches) >= 2:
+                key = int(matches[0], 16)
+                value = int(matches[1], 16)
+                result[key] = value
+
+    return result

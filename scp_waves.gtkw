@@ -1,0 +1,50 @@
+[*]
+[*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
+[*] Mon Jun  2 11:37:25 2025
+[*]
+[dumpfile] "/home/gg/mush/simulation/output/dump.vcd"
+[dumpfile_mtime] "Mon Jun  2 11:35:56 2025"
+[dumpfile_size] 23477
+[savefile] "/home/gg/mush/scp_waves.gtkw"
+[timestart] 0
+[size] 1327 688
+[pos] -1 -1
+*-14.704703 7800 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] SCP.
+[sst_width] 297
+[signals_width] 241
+[sst_expanded] 1
+[sst_vpaned_height] 200
+@200
+-INST
+@22
+SCP.C.insturction[31:0]
+@200
+-
+@28
+SCP.instruction.funct7[6:0]
+SCP.instruction.rs2[4:0]
+SCP.instruction.rs1[4:0]
+SCP.instruction.funct3[2:0]
+SCP.instruction.rd[4:0]
+SCP.instruction.opcode[6:0]
+@200
+-
+-ALU
+@22
+SCP.alu_op[4:0]
+@420
+SCP.ALU.in1[31:0]
+SCP.ALU.in2[31:0]
+SCP.ALU.result[31:0]
+@200
+-
+@28
+SCP.PC.clk
+@24
+SCP.PC.addr[31:0]
+@28
+SCP.PC.rst
+SCP.BC.br_taken
+[pattern_trace] 1
+[pattern_trace] 0

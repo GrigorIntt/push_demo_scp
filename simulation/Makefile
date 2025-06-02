@@ -1,7 +1,7 @@
 TOPLEVEL_LANG = verilog
 SIM = verilator
 TOPLEVEL = SCP
-MODULE = test_my_dut
+MODULE = sim_evaluator
 VERILOG_SOURCES := $(shell find $(DESIGN) -name '*.sv')
 ELF = $(PARENT_DIR)/$(TARGET).elf
 OUTDIR = output
@@ -18,7 +18,7 @@ EXTRA_ARGS += -I$(INCLUDE)
 EXTRA_ARGS += --trace --trace-structs
 # EXTRA_ARGS += --assert --coverage
 
-SIM_OUT_FILES := dump.vcd results.xml trace.log write.log
+SIM_OUT_FILES := dump.vcd results.xml write.log
 
 SITE_PACKAGES_DIR := $(shell find $(PARENT_DIR)/.venv/lib/ -type d -name site-packages)
 
@@ -35,7 +35,10 @@ trace:
 		MODULE=$(MODULE) \
 		EXTRA_ARGS="$(EXTRA_ARGS)" \
 		VERILOG_SOURCES="$(VERILOG_SOURCES)" \
-		ELF=$(ELF)
+		ELF=$(ELF) SPK_TRACE=$(SPK_TRACE) \
+		|| { echo "Simulation failed, cleaning up..."; rm -fr $(OUTDIR); exit 1; }
+
+	@if [ "trace.log" != "$(TRACE)" ]; then mv trace.log $(TRACE); fi
 
 	mkdir -p $(OUTDIR)
 	mv $(SIM_OUT_FILES) $(OUTDIR)
