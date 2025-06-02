@@ -20,6 +20,13 @@ EXTRA_ARGS += --trace --trace-structs
 
 SIM_OUT_FILES := dump.vcd results.xml trace.log
 
+SITE_PACKAGES_DIR := $(shell find $(PARENT_DIR)/.venv/lib/ -type d -name site-packages)
+
+all: create-utils-pth $(OUTDIR)/trace.log
+
+create-utils-pth:
+	echo "$(PARENT_DIR)" > $(SITE_PACKAGES_DIR)/utils.pth
+
 $(OUTDIR)/trace.log:
 	$(MAKE) -f $(shell cocotb-config --makefiles)/Makefile.sim \
 		TOPLEVEL_LANG=$(TOPLEVEL_LANG) \

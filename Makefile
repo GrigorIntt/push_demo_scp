@@ -29,7 +29,7 @@ SPIKE_OUT = $(SPK)/output/trace.log
 all: compile sim spk
 
 sim:
-	make -C $(SIM) DESIGN=$(DESIGN) TARGET=$(TARGET)
+	make -C $(SIM) PARENT_DIR=$(PWD) DESIGN=$(DESIGN) TARGET=$(TARGET) INCLUDE=$(INCLUDE)
 
 spk:
 	make -C $(SPK) PARENT_DIR=$(PWD) TARGET=$(TARGET)
@@ -43,7 +43,7 @@ drive:
 	make -C $(SPK) python
 
 clean: clean_spk clean_sim
-	rm -fr $(COMPILE_DIR)/*
+	rm -fr $(COMPILE_DIR)
 	rm -f $(SPIKE_OUT) $(SIM_OUT)
 
 clean_spk:

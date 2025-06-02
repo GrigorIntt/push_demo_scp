@@ -3,14 +3,12 @@ from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer, FallingEdge
 from cocotb.binary import BinaryValue, BinaryRepresentation
 
-# from utils import format_riscv_instruction, riscv_binary_to_assembly
+from utils import read_elf_instructions
 
 @cocotb.test()
 async def test_vector_assignment(dut):
     log = open_py_log_file()
-    insts = get_instuctions_list()
-    # print(insts, file=log)
-    # print(file=log)
+    insts = read_elf_()
 
     # Start a 10ns period clock on 'clk'
     cocotb.start_soon(Clock(dut.clk, 10, units="ns").start())
@@ -65,10 +63,6 @@ async def test_vector_assignment(dut):
 
 
     log.close()
-
-def get_instuctions_list():
-    with open("instructions.txt", 'r') as f:
-        return [l.strip() for l in f.readlines()]
     
 def open_py_log_file():
     return open('trace.log', 'w')
