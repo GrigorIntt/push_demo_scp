@@ -3,8 +3,8 @@ module InstructionMemory (
     output instruction_packed instruction
 );
   
-logic[31:0] instruction_memory[1024:0];
+logic[31:0] instruction_memory[2**10:0];
 
-assign instruction = instruction_memory[{addr[10:2], 2'b00}];
+assign instruction = instruction_memory[addr];
 
 endmodule

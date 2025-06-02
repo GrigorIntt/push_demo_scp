@@ -18,7 +18,7 @@ assign Imm = inst [31:7];
     // J Type
     3'b011:   imm_out = {{12{Imm[24]}}, Imm[12:5],  Imm[13], Imm[23:14], 1'b0};
     // U Type
-    3'b100:   imm_out = {Imm[24:5], 12'b000000000000};
+    3'b100:   imm_out = {12'b0, Imm[24:5]}; 
     default: 	imm_out = 32'dx; // undefined
     endcase
   end
