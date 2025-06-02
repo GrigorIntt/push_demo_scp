@@ -31,18 +31,15 @@ SPIKE_OUT = $(SPK)/output/trace.log
 all: compile $(SIM_OUT) $(SPIKE_OUT)
 
 $(SPIKE_OUT):
-	make -C $(SPK) PARENT_DIR=$(PWD) TARGET=COMPILE_DIR
+	make -C $(SPK) PARENT_DIR=$(PWD) TARGET=TARGET
 
 $(SIM_OUT):
-	make -C $(SIM) DESIGN=$(DESIGN) TARGET=COMPILE_DIR
+	make -C $(SIM) DESIGN=$(DESIGN) TARGET=TARGET
 
 compile:
-	$(SRC_C) $(STARTUP) $(LINKER_SCRIPT)
 	mkdir -p $(COMPILE_DIR)
-	$(CC) $(CFLAGS) -T $(LINKER_SCRIPT) $(STARTUP) $(SRC_C) -o $@
-
-	$(TARGET).elf
-	$(OBJCOPY) -O binary $< $@
+	$(CC) $(CFLAGS) -T $(LINKER_SCRIPT) $(STARTUP) $(SRC_C) -o $(TARGET).elf
+	$(OBJCOPY) -O binary $(TARGET).elf $(TARGET).bin
 
 drive:
 	make -C $(SPK) python

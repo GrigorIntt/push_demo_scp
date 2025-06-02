@@ -1,6 +1,7 @@
 out/
 output/
 trace/
+compile/
 # riscv-tools
 __pycache__
 sim_build
