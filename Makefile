@@ -26,15 +26,13 @@ SIM_OUT = $(SIM)/output/trace.log
 SPK = spike_simulation
 SPIKE_OUT = $(SPK)/output/trace.log
 
+all: compile sim spk
 
+sim:
+	make -C $(SIM) DESIGN=$(DESIGN) TARGET=$(TARGET)
 
-all: compile $(SIM_OUT) $(SPIKE_OUT)
-
-$(SPIKE_OUT):
-	make -C $(SPK) PARENT_DIR=$(PWD) TARGET=TARGET
-
-$(SIM_OUT):
-	make -C $(SIM) DESIGN=$(DESIGN) TARGET=TARGET
+spk:
+	make -C $(SPK) PARENT_DIR=$(PWD) TARGET=$(TARGET)
 
 compile:
 	mkdir -p $(COMPILE_DIR)
@@ -44,14 +42,14 @@ compile:
 drive:
 	make -C $(SPK) python
 
-clean: clean_spike clean_sim
+clean: clean_spk clean_sim
 	rm -fr $(COMPILE_DIR)/*
 	rm -f $(SPIKE_OUT) $(SIM_OUT)
 
-clean_spike:
+clean_spk:
 	make -C $(SPK) clean
 
 clean_sim:
 	make -C $(SIM) clean
 
-.PHONY: clean clean_sim clean_spike $(SPIKE_OUT) $(SIM_OUT) compile
+.PHONY: clean clean_sim clean_spk spk sim compile
