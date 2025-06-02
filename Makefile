@@ -30,11 +30,14 @@ SPIKE_OUT = $(SPK)/$(TRACE)
 
 all: compile spk sim
 
-spk: 
+spk: $(SPIKE_OUT)
+	
+$(SPIKE_OUT):
 	make -C $(SPK) PARENT_DIR=$(PWD) TARGET=$(TARGET) TRACE=$(TRACE)
 
-sim: spk
+sim: $(SPIKE_OUT)
 	make -C $(SIM) PARENT_DIR=$(PWD) TARGET=$(TARGET) TRACE=$(TRACE) \
+	SPK_TRACE=$(realpath $(SPIKE_OUT)) \
 	DESIGN=$(DESIGN) INCLUDE=$(INCLUDE)
 
 compile:

@@ -18,7 +18,7 @@ async def spike_evaluation_trace_test(dut):
     log_write = open('write.log', 'w')
 
     insts, data, arch = read_elf_instructions(elf)
-    parse_spike_trace_to_dict()
+    spk_dict = parse_spike_trace_to_dict(spk_trace)
 
     # custom = [0x00004117, 
     #         0x04010113, 
@@ -55,7 +55,9 @@ async def spike_evaluation_trace_test(dut):
     await Timer(10)
     dut.rst.value = 0
     
-    for decoded in range(15):
+
+    last_viewed_ind = -1
+    while last_viewed_ind + 1 < len(spk_dict):
         await RisingEdge(dut.clk)
 
 
