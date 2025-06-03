@@ -1,33 +1,44 @@
-TOPLEVEL_LANG = verilog
 SIM = verilator
-TOPLEVEL = SCP
+TOPLEVEL_LANG = verilog
 MODULE = sim_evaluator
+
+ifndef OUT
+OUT = compile
+endif
+
+ifndef ELF
+ELF = ../compilation/compiled/test_program.elf
+endif
+
+ifndef NAME
+NAME = out
+endif
+
+ifndef TOPLEVEL
+TOPLEVEL = design_top
+endif
+
+ifndef SPK_TRACE
+SPK_TRACE = ../spike_simulation/output/spike_trace.log
+endif
+
+ifndef DESIGN
+DESIGN = ../design
+endif
+
+ifndef INCLUDE
+INCLUDE = ../design/include
+endif
+
 VERILOG_SOURCES := $(shell find $(DESIGN) -name '*.sv')
-ELF = $(PARENT_DIR)/$(TARGET).elf
-OUTDIR = output
-
-# # Print each Verilog source on a new line (Make 4.0+)
-# $(info )
-# $(foreach src,$(VERILOG_SOURCES),$(info $(src)))
-# $(info )
-
-# Include paths
 EXTRA_ARGS += -I$(INCLUDE) 
-
-# Verilator specific options
 EXTRA_ARGS += --trace --trace-structs
 # EXTRA_ARGS += --assert --coverage
 
-SIM_OUT_FILES := dump.vcd results.xml write.log
+SIM_OUT_FILES = $(abspath dump.vcd results.xml write.txt $(NAME).log)
 
-SITE_PACKAGES_DIR := $(shell find $(PARENT_DIR)/.venv/lib/ -type d -name site-packages)
-
-all: create-utils-pth trace
-
-create-utils-pth:
-	echo "$(PARENT_DIR)" > $(SITE_PACKAGES_DIR)/utils.pth
-
-trace:
+all:
+	echo "\n\n\n$(DESIGN)"
 	$(MAKE) -f $(shell cocotb-config --makefiles)/Makefile.sim \
 		TOPLEVEL_LANG=$(TOPLEVEL_LANG) \
 		SIM=$(SIM) \
@@ -35,15 +46,14 @@ trace:
 		MODULE=$(MODULE) \
 		EXTRA_ARGS="$(EXTRA_ARGS)" \
 		VERILOG_SOURCES="$(VERILOG_SOURCES)" \
-		ELF=$(ELF) SPK_TRACE=$(SPK_TRACE) \
-		|| { echo "Simulation failed, cleaning up..."; rm -fr $(OUTDIR); exit 1; }
+		ELF=$(ELF) SPK_TRACE=$(SPK_TRACE) NAME=$(NAME) \
+		|| { echo "Simulation failed, cleaning up... \n$(SIM_OUT_FILES)"; rm -f $(SIM_OUT_FILES); exit 1;}
 
-	@if [ "trace.log" != "$(TRACE)" ]; then mv trace.log $(TRACE); fi
-
-	mkdir -p $(OUTDIR)
-	mv $(SIM_OUT_FILES) $(OUTDIR)
+	mkdir -p $(OUT)
+	mv $(SIM_OUT_FILES) $(OUT)
 
 
 clean:
 	$(MAKE) -f $(shell cocotb-config --makefiles)/Makefile.sim clean
-	rm -rf $(OUTDIR)
+	rm -rf $(OUT)
+	rm -f $(SIM_OUT_FILES)

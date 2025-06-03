@@ -2,8 +2,9 @@ out/
 output/
 trace/
 trace.log
-compile/
 sim_build/
+compiled/
+evaluation/
 # riscv-tools
 __pycache__
 .venv

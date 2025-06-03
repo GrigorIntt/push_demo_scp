@@ -1,17 +1,16 @@
 #include <stdint.h>
 
-void _Exit(int exit_code) {
-    (void)exit_code;
-    // Halt
-    while (1) {
-        __asm__ volatile ("wfi");
-    }
-}
-
 int main() {
     // Main code should be here
-    int a = 5;
-    int b = 3;
-    int c = a + b;
+    int c = 300;
+    int d = c + 555;
+    int e = c + 111;
+    int f = c + 222;
+    int g = c + 333;
+    int h = c + 444;
+    while (c > 100) {
+        c = c - 1;
+    }
+
     return 0;
 }

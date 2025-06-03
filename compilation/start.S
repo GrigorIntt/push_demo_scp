@@ -16,4 +16,3 @@ _start:
 2:
     /* Call main */
     call main
-    call _Exit

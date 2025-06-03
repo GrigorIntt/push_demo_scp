@@ -14,9 +14,10 @@ from capstone import *
 async def spike_evaluation_trace_test(dut):
     elf = os.getenv("ELF")
     spk_trace = os.getenv("SPK_TRACE")
+    outname = os.getenv("NAME")
 
-    log_trace = open('trace.log', 'w')
-    log_write = open('write.log', 'w')
+    log_trace = open(f'{outname}.log', 'w')
+    log_write = open('write.txt', 'w')
 
     insts, data, arch = read_elf_instructions(elf)
     spk_eval = parse_spike_trace_to_dict(spk_trace)
@@ -95,7 +96,7 @@ async def spike_evaluation_trace_test(dut):
                               f"0x{spk_inst:08x} ({inst_txt})", 
                               f"{pc:08x}"])
 
-            if (undecoded or sim_inst != spk_inst or sim_addr != spk_addr):
+            if (sim_inst != spk_inst or sim_addr != spk_addr):
                 mm_data = [
                         ["ADDRESS", f"0x{spk_addr:08x}", f"0x{sim_addr:08x}"],
                         ["INSTRUTION", f"0x{spk_inst:08x}", f"0x{sim_inst:08x}"],

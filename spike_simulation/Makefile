@@ -1,35 +1,25 @@
-SPIKE = $(PARENT_DIR)/riscv-tools/riscv-isa-sim/build/spike
-ELF = $(PARENT_DIR)/$(TARGET).elf
 CMD_FILE = spike_drive.cmd
-OUTDIR = output
 
-all: trace
+ifndef SPIKE
+SPIKE = ../riscv-tools/riscv-isa-sim/build/spike
+endif
 
-trace:
-	mkdir -p $(OUTDIR)
+ifndef OUT
+OUT = compile
+endif
+
+ifndef ELF
+ELF = ../compilation/compiled/test_program.elf
+endif
+
+ifndef NAME
+NAME = out
+endif
+
+all:
+	mkdir -p $(OUT)
 	$(SPIKE) \
 		--isa=RV32IMAFDC \
 		--instructions=100 \
-		-l --log=$(TRACE) \
-		$(ELF) 2>&1 | tee $(OUTDIR)/output.log
-
-debug:
-	$(SPIKE) \
-		-l --log=$(OUTDIR)/trace.log \
-		-d --debug-cmd=${CMD_FILE} \
-		$(ELF) 2>&1 | tee $(OUTDIR)/output.log
-
-manual:
-	$(SPIKE) \
-		-l --log=$(OUTDIR)/trace.log \
-		-d \
-		$(ELF)
-
-python:
-	python3 spike_driver.py $(SPIKE) $(ELF) $(OUTDIR)/output.log
-
-
-clean:
-	rm -fr $(OUTDIR)
-
-.PHONY: all clean trace
+		-l --log=$(OUT)/$(NAME).log \
+		$(ELF) 2>&1 | tee $(OUT)/logs.txt

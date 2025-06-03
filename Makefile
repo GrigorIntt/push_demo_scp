@@ -1,62 +1,54 @@
-SRC_C = test_program.c
+EVAL = evaluation
 
-RISCV_PREFIX ?= riscv32-unknown-elf-
-CC = $(RISCV_PREFIX)gcc
-OBJCOPY = $(RISCV_PREFIX)objcopy
-COMPILE_DIR = compile
-TARGET = $(COMPILE_DIR)/target
-# Source files
-STARTUP = start.S
-LINKER_SCRIPT = linker.ld 
-
-# Compilation flags
-CFLAGS = -march=rv32imac_zicsr -mabi=ilp32 -static -mcmodel=medany \
-         -fvisibility=hidden -nostdlib -nostartfiles -O2
-
-ifdef INCLUDE_DIR
-CFLAGS += -I$(INCLUDE_DIR)
-endif
-
-DESIGN = $(PWD)/design
-INCLUDE = $(PWD)/design/include
-
-TRACE = trace.log
-
-SIM = simulation
-SIM_OUT = $(SIM)/$(TRACE)
+CMP = compilation
+SRC_C = $(realpath test_program.c)
+CMP_OUT = compiled
+CMP_NAME = test_program
+DEST_ELF = $(PWD)/$(EVAL)/$(CMP_OUT)/$(CMP_NAME).elf
 
 SPK = spike_simulation
-SPIKE_OUT = $(SPK)/$(TRACE)
+SPIKE_BUILD = $(realpath riscv-tools/riscv-isa-sim/build/spike)
+SPK_OUT = output
+SPK_NAME = spike_trace
+DEST_SPK_TRACE = $(PWD)/$(EVAL)/$(SPK_NAME).log
+
+SIM = simulation
+DESIGN = $(realpath design)
+INCLUDE = $(realpath design/include)
+DESIGN_TOP = "SCP"
+SIM_OUT = output
+SIM_NAME = compare
+DEST_SIM_COMP = $(PWD)/$(EVAL)/$(SIM_NAME).log
 
 all: compile spk sim
 
-spk: $(SPIKE_OUT)
-	
-$(SPIKE_OUT):
-	make -C $(SPK) PARENT_DIR=$(PWD) TARGET=$(TARGET) TRACE=$(TRACE)
-
-sim: $(SPIKE_OUT)
-	make -C $(SIM) PARENT_DIR=$(PWD) TARGET=$(TARGET) TRACE=$(TRACE) \
-	SPK_TRACE=$(realpath $(SPIKE_OUT)) \
-	DESIGN=$(DESIGN) INCLUDE=$(INCLUDE)
-
 compile:
-	mkdir -p $(COMPILE_DIR)
-	$(CC) $(CFLAGS) -T $(LINKER_SCRIPT) $(STARTUP) $(SRC_C) -o $(TARGET).elf
-# $(CC) -o $(TARGET).elf $(SRC_C)
-	$(OBJCOPY) -O binary $(TARGET).elf $(TARGET).bin
+	make -C $(CMP) TARGET=$(SRC_C) OUT=$(CMP_OUT) NAME=$(CMP_NAME)
+	mkdir -p $(EVAL)/$(CMP_OUT)
+	cp $(CMP)/$(CMP_OUT)/$(CMP_NAME).elf $(DEST_ELF)
 
-drive:
-	make -C $(SPK) python
+spk: $(DEST_ELF)
+	make -C $(SPK) ELF=$(DEST_ELF) OUT=$(SPK_OUT) NAME=$(SPK_NAME)
+	cp $(SPK)/$(SPK_OUT)/$(SPK_NAME).log $(DEST_SPK_TRACE)
 
-clean: spk_clean sim_clean
-	rm -fr $(COMPILE_DIR)
-	rm -f $(SPIKE_OUT) $(SIM_OUT)
+sim: $(DEST_ELF) $(DEST_SPK_TRACE) import-this-to-python
+	make -C $(SIM) ELF=$(DEST_ELF) OUT=$(SIM_OUT) NAME=$(SIM_NAME) \
+	DESIGN=$(DESIGN) INCLUDE=$(INCLUDE) TOPLEVEL=$(DESIGN_TOP)
+	cp $(SIM)/$(SIM_OUT)/$(SIM_NAME).log $(DEST_SIM_COMP)
 
-spk_clean:
-	make -C $(SPK) clean
+import-this-to-python:
+	echo "$(realpath ./)" > $(shell python3 -c "import sysconfig; print(sysconfig.get_paths()['purelib'])")/utils.pth
 
-sim_clean:
+clean_eval:
+	rm -fr $(EVAL)
+
+clean_spk:
+	rm -fr $(SPK)/$(SPK_OUT)
+
+clean_sim:
+	rm -fr $(SIM)/$(SIM_OUT)
 	make -C $(SIM) clean
 
-.PHONY: clean sim_clean spk_clean spk sim compile
+clean: clean_eval clean_spk clean_sim
+
+.PHONY: clean clean_eval clean_spk clean_sim spk sim compile
