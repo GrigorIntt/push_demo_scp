@@ -1,17 +1,25 @@
-Prerequisites
--------------
+## Prerequisites
 
-Before using this Makefile, ensure the following setup is complete:
+Before using this Makefile, ensure the following components are set up correctly:
 
-1. Spike Simulator  
-   The Spike RISC-V ISA simulator (`spike`) should already be built and located at:  
-   riscv-tools/riscv-isa-sim/build/spike  
-   If the simulator is located elsewhere, update the corresponding path in the Makefile.
+### 1. Spike Simulator
 
-2. RISC-V GCC Toolchain  
-   You must have built the `riscv32-unknown-elf-gcc` compiler using the `riscv-gnu-toolchain`.  
-   Ensure that the compiler binaries are available in your system's environment `PATH`.
+The Spike RISC-V ISA simulator (`spike`) must be built and available at the following path:
 
-3. Python Virtual Environment  
-   A Python virtual environment is expected at the project root, named: `.venv`.    
-   If your virtual environment has a different name or location, update the relevant path in `simulation/Makefile`.
+```
+riscv-tools/riscv-isa-sim/build/spike
+```
+
+> ⚠️ If the simulator is located elsewhere, update the corresponding path in the `Makefile`.
+
+### 2. RISC-V GCC Toolchain
+
+You need the `riscv32-unknown-elf-gcc` compiler, which can be built using the `riscv-gnu-toolchain`.
+
+Make sure the toolchain binaries (e.g., `riscv32-unknown-elf-gcc`, `riscv32-unknown-elf-objdump`, etc.) are available in your system's `PATH`.
+
+---
+
+## Evaluation Logs
+
+During execution, all evaluation logs will be saved in an `evaluation/` directory. This folder will be created automatically when the Makefile is run.
