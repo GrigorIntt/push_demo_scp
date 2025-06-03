@@ -5,6 +5,7 @@ from cocotb.binary import BinaryValue, BinaryRepresentation
 import os
 
 from utils import read_elf_instructions, sv_enumerate, parse_spike_trace_to_dict
+from tabulate import tabulate
 
 from capstone import *
 
@@ -18,7 +19,7 @@ async def spike_evaluation_trace_test(dut):
     log_write = open('write.log', 'w')
 
     insts, data, arch = read_elf_instructions(elf)
-    spk_dict = parse_spike_trace_to_dict(spk_trace)
+    spk_eval = parse_spike_trace_to_dict(spk_trace)
 
     # custom = [0x00004117, 
     #         0x04010113, 
@@ -34,78 +35,85 @@ async def spike_evaluation_trace_test(dut):
     # Start a 10ns period clock on 'clk'
     cocotb.start_soon(Clock(dut.clk, 10, units="ns").start())
 
-    
-    md = Cs(CS_ARCH_RISCV, CS_MODE_RISCV32)
+    try:
+        md = Cs(CS_ARCH_RISCV, CS_MODE_RISCV32)
 
-    for decoded, (addr, inst, ibytes) in enumerate(insts):
+        for decoded, (addr, inst, ibytes) in enumerate(insts):
+            
+            out = [*md.disasm(ibytes, 0)]
+            print(f"ADDR: {addr:08x}", end=" | ", file=log_write)
+            print(f"INST: {inst:08x}", end=" | ", file=log_write)
+            if len(out) == 1:
+                inst_bin_str = format(inst, '032b')
+                dut.IM.instruction_memory[decoded].value = BinaryValue(inst_bin_str, n_bits=32)
+                decoded = out[0]
+                print(f"READ: {decoded.mnemonic} {decoded.op_str}", file=log_write)
+            else:
+                print(f"XXX SKIPPED (error={len(out)}) XXX", file=log_write)
         
-        out = [*md.disasm(ibytes, 0)]
-        print(f"ADDR: {addr:08x}", end=" | ", file=log_write)
-        print(f"INST: {inst:08x}", end=" | ", file=log_write)
-        if len(out) == 1:
-            inst_bin_str = format(inst, '032b')
-            dut.IM.instruction_memory[decoded].value = BinaryValue(inst_bin_str, n_bits=32)
-            decoded = out[0]
-            print(f"READ: {decoded.mnemonic} {decoded.op_str}", file=log_write)
-        else:
-            print(f"XXX SKIPPED (error={len(out)}) XXX", file=log_write)
-    
 
-    dut.rst.value = 1
-    await Timer(10)
-    dut.rst.value = 0
-    
+        dut.rst.value = 1
+        await Timer(10)
+        dut.rst.value = 0
+        
 
-    last_viewed_ind = -1
-    while last_viewed_ind + 1 < len(spk_dict):
-        await RisingEdge(dut.clk)
+        program_entry_point = 0xf0000000
+        start_point_ind = -1
+        for i, (a, inst) in enumerate(spk_eval):
+            if a == program_entry_point:
+                start_point_ind = i
+                break
+        
+        if start_point_ind == -1:
+            raise Exception(f"Cant find start point {program_entry_point:08x} in \n" 
+                            + "\n".join([f"{a:08x} | {inst}" for a, inst in spk_eval]))
 
+        eval_table = ''
+        eval_headers = ["index", "address", "instrution", "simulation executed"]
+        eval_data = []
 
-        pc = dut.addr.value.integer
-        addr = 0xf000000 + pc * 4
+        mm_table = ''
+        mm_headers = ["-", "SPIKE", "SIMULATION"]
+        mm_data = []
 
-        inst = dut.instruction.value.integer
-        ibytes = inst.to_bytes(4, byteorder='little')
-        out = [*md.disasm(ibytes, 0)]
-
-
-        if len(out) == 1:
-            decoded = out[0]
-            inst_txt = f"{decoded.mnemonic} {decoded.op_str}"
-            print(f'core   0: 0x{addr:08x} (0x{inst:08x}) {inst_txt}', file=log_trace)
-        else:
-            print(f"XXX SKIPPED (error={len(out)}) XXX", file=log_trace)
-
-    # for i, inst_in_memory in sv_enumerate(dut.IM.instruction_memory, 1):
-    #     pass
-        # legal, inst_assembly = riscv_binary_to_assembly(str(inst_in_memory.value))
-        # if not legal:
-        #     continue
-        # print(f'{i:<5} == {inst_assembly}', file=log)
+        for i, (spk_addr, spk_inst) in enumerate(spk_eval[start_point_ind:]):
+            await RisingEdge(dut.clk)
 
 
-    # await Timer(100, 'ns')
+            pc = dut.addr.value.integer
+            sim_addr = program_entry_point + pc * 4
+            sim_inst = dut.instruction.value.integer
+            
+            ibytes = spk_inst.to_bytes(4, byteorder='little')
+            out = [*md.disasm(ibytes, 0)]
 
-    # dut.alu_out.value = BinaryValue(32 * '1', n_bits=32)
-    # dut.br_taken.value = BinaryValue('1', n_bits=1)
+            undecoded = len(out) != 1
+            
+            inst_txt = "UNDECODED" if undecoded else f"{out[0].mnemonic} {out[0].op_str}"
+            eval_data.append([i, 
+                              f"0x{spk_addr:08x}", 
+                              f"0x{spk_inst:08x} ({inst_txt})", 
+                              f"{pc:08x}"])
 
-    # print(file=log)
-    # print(dut.program_counter.value.integer, file=log)
+            if (undecoded or sim_inst != spk_inst or sim_addr != spk_addr):
+                mm_data = [
+                        ["ADDRESS", f"0x{spk_addr:08x}", f"0x{sim_addr:08x}"],
+                        ["INSTRUTION", f"0x{spk_inst:08x}", f"0x{sim_inst:08x}"],
+                        ["INDEX", f"{i}", ""],
+                    ]
+                raise Exception(f"Mismatch found\n{mm_table}")
 
-    # for i in range(10):
-    #     if i == 5:
-    #         dut.rst.value = 1
-    #         await FallingEdge(dut.clk)
-    #         dut.rst.value = 0
+    except Exception as e:
+        eval_table = tabulate(eval_data, eval_headers, tablefmt="grid")
+        mm_table = tabulate(mm_data, headers=mm_headers, tablefmt="grid")
 
-    #     await RisingEdge(dut.clk)
-    #     print(dut.program_counter.value.integer, dut.next_addr.value.integer, dut.addr.value.integer, file=log)
-
-    
-
-
-    log_trace.close()
-    log_write.close()
+        print(eval_table, file=log_trace)
+        print(file=log_trace)
+        print(mm_table, file=log_trace)
+        raise Exception('\n' * 3 + str(e) + '\n' * 3)
+    finally:
+        log_trace.close()
+        log_write.close()
 
 def enchant_binary_instr(inst:str):
     return inst

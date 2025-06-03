@@ -244,7 +244,7 @@ def sv_enumerate(sv_array, force_ascending=False):
         yield i, sv_array[i]
 
 def parse_spike_trace_to_dict(file_path):
-    result = {}
+    result = []
     pattern = re.compile(r'0x[0-9a-fA-F]+')
 
     with open(file_path, 'r') as file:
@@ -253,6 +253,6 @@ def parse_spike_trace_to_dict(file_path):
             if len(matches) >= 2:
                 key = int(matches[0], 16)
                 value = int(matches[1], 16)
-                result[key] = value
+                result.append((key, value))
 
     return result
