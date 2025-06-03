@@ -8,3 +8,4 @@ evaluation/
 # riscv-tools
 __pycache__
 .venv
+*.gtkw

@@ -7,7 +7,7 @@ CMP = compilation
 SRC_C = $(realpath test_program.c)
 CMP_OUT = compiled
 CMP_NAME = test_program
-ELF = $(CMP)/$(CMP_OUT)/$(CMP_NAME).elf
+ELF = $(realpath $(CMP)/$(CMP_OUT)/$(CMP_NAME).elf)
 
 compile:
 	make -C $(CMP) TARGET=$(SRC_C) OUT=$(CMP_OUT) NAME=$(CMP_NAME)
