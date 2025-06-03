@@ -30,3 +30,4 @@ all:
 	mkdir -p $(OUT)
 	$(CC) $(CFLAGS) -T $(LINKER_SCRIPT) $(STARTUP) $(TARGET) -o $(OUT)/$(NAME).elf
 	$(OBJCOPY) -O binary $(OUT)/$(NAME).elf $(OUT)/$(NAME).bin
+	python3 elf_viewer.py $(OUT)/$(NAME).elf $(OUT)/$(NAME).log

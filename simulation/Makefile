@@ -38,7 +38,6 @@ EXTRA_ARGS += --trace --trace-structs
 SIM_OUT_FILES = $(abspath dump.vcd results.xml write.txt $(NAME).log)
 
 all:
-	echo "\n\n\n$(DESIGN)"
 	$(MAKE) -f $(shell cocotb-config --makefiles)/Makefile.sim \
 		TOPLEVEL_LANG=$(TOPLEVEL_LANG) \
 		SIM=$(SIM) \

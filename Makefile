@@ -1,16 +1,30 @@
 EVAL = evaluation
+DEST = $(PWD)/$(EVAL)
+
+all: compile spk sim
 
 CMP = compilation
 SRC_C = $(realpath test_program.c)
 CMP_OUT = compiled
 CMP_NAME = test_program
-DEST_ELF = $(PWD)/$(EVAL)/$(CMP_OUT)/$(CMP_NAME).elf
+DEST_ELF = $(DEST)/$(CMP_NAME).elf
+
+compile:
+	make -C $(CMP) TARGET=$(SRC_C) OUT=$(CMP_OUT) NAME=$(CMP_NAME)
+	mkdir -p $(DEST)
+	cp $(CMP)/$(CMP_OUT)/$(CMP_NAME).elf $(DEST)
+	cp $(CMP)/$(CMP_OUT)/$(CMP_NAME).log $(DEST)
+
 
 SPK = spike_simulation
 SPIKE_BUILD = $(realpath riscv-tools/riscv-isa-sim/build/spike)
 SPK_OUT = output
 SPK_NAME = spike_trace
-DEST_SPK_TRACE = $(PWD)/$(EVAL)/$(SPK_NAME).log
+DEST_SPK_TRACE = $(DEST)/$(SPK_NAME).log
+
+spk: $(DEST_ELF)
+	make -C $(SPK) ELF=$(DEST_ELF) OUT=$(SPK_OUT) NAME=$(SPK_NAME)
+	cp $(SPK)/$(SPK_OUT)/$(SPK_NAME).log $(DEST_SPK_TRACE)
 
 SIM = simulation
 DESIGN = $(realpath design)
@@ -18,18 +32,7 @@ INCLUDE = $(realpath design/include)
 DESIGN_TOP = "SCP"
 SIM_OUT = output
 SIM_NAME = compare
-DEST_SIM_COMP = $(PWD)/$(EVAL)/$(SIM_NAME).log
-
-all: compile spk sim
-
-compile:
-	make -C $(CMP) TARGET=$(SRC_C) OUT=$(CMP_OUT) NAME=$(CMP_NAME)
-	mkdir -p $(EVAL)/$(CMP_OUT)
-	cp $(CMP)/$(CMP_OUT)/$(CMP_NAME).elf $(DEST_ELF)
-
-spk: $(DEST_ELF)
-	make -C $(SPK) ELF=$(DEST_ELF) OUT=$(SPK_OUT) NAME=$(SPK_NAME)
-	cp $(SPK)/$(SPK_OUT)/$(SPK_NAME).log $(DEST_SPK_TRACE)
+DEST_SIM_COMP = $(DEST)/$(SIM_NAME).log
 
 sim: $(DEST_ELF) $(DEST_SPK_TRACE) import-this-to-python
 	make -C $(SIM) ELF=$(DEST_ELF) OUT=$(SIM_OUT) NAME=$(SIM_NAME) \
@@ -48,6 +51,9 @@ clean_spk:
 clean_sim:
 	rm -fr $(SIM)/$(SIM_OUT)
 	make -C $(SIM) clean
+
+outclean:
+	rm -fr $(EVAL) $(SPK)/$(SPK_OUT) $(SIM)/$(SIM_OUT)
 
 clean: clean_eval clean_spk clean_sim
 
