@@ -7,12 +7,11 @@ CMP = compilation
 SRC_C = $(realpath test_program.c)
 CMP_OUT = compiled
 CMP_NAME = test_program
-DEST_ELF = $(DEST)/$(CMP_NAME).elf
+ELF = $(CMP)/$(CMP_OUT)/$(CMP_NAME).elf
 
 compile:
 	make -C $(CMP) TARGET=$(SRC_C) OUT=$(CMP_OUT) NAME=$(CMP_NAME)
 	mkdir -p $(DEST)
-	cp $(CMP)/$(CMP_OUT)/$(CMP_NAME).elf $(DEST)
 	cp $(CMP)/$(CMP_OUT)/$(CMP_NAME).log $(DEST)
 
 
@@ -22,8 +21,8 @@ SPK_OUT = output
 SPK_NAME = spike_trace
 DEST_SPK_TRACE = $(DEST)/$(SPK_NAME).log
 
-spk: $(DEST_ELF)
-	make -C $(SPK) ELF=$(DEST_ELF) OUT=$(SPK_OUT) NAME=$(SPK_NAME)
+spk: $(ELF)
+	make -C $(SPK) ELF=$(ELF) OUT=$(SPK_OUT) NAME=$(SPK_NAME)
 	cp $(SPK)/$(SPK_OUT)/$(SPK_NAME).log $(DEST_SPK_TRACE)
 
 SIM = simulation
@@ -34,8 +33,8 @@ SIM_OUT = output
 SIM_NAME = compare
 DEST_SIM_COMP = $(DEST)/$(SIM_NAME).log
 
-sim: $(DEST_ELF) $(DEST_SPK_TRACE) import-this-to-python
-	make -C $(SIM) ELF=$(DEST_ELF) OUT=$(SIM_OUT) NAME=$(SIM_NAME) \
+sim: $(ELF) $(DEST_SPK_TRACE) import-this-to-python
+	make -C $(SIM) ELF=$(ELF) OUT=$(SIM_OUT) NAME=$(SIM_NAME) \
 	DESIGN=$(DESIGN) INCLUDE=$(INCLUDE) TOPLEVEL=$(DESIGN_TOP)
 	cp $(SIM)/$(SIM_OUT)/$(SIM_NAME).log $(DEST_SIM_COMP)
 
