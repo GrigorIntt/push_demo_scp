@@ -13,7 +13,7 @@ logic[31:0] alu_in1, alu_in2, alu_result, rdata, data_rd, data_wr;
 instruction_packed instruction;
 
 // Fetch
-assign next_addr = addr + 1;
+assign next_addr = addr + 4;
 
 Multiplexer_N_to_1 #(.N(3)) MUX_PC(.in('{next_addr, alu_result, 32'b0}), .select({rst, br_taken & !rst}), .out(program_counter));
 ProgramCounter PC(clk, rst, program_counter, addr);
