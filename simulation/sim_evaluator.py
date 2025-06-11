@@ -39,16 +39,20 @@ async def spike_evaluation_trace_test(dut):
     try:
         md = Cs(CS_ARCH_RISCV, CS_MODE_RISCV32)
 
-        for decoded, (addr, inst, ibytes) in enumerate(insts):
+        for number, (addr, inst, ibytes) in enumerate(insts):
             
             out = [*md.disasm(ibytes, 0)]
             print(f"ADDR: {addr:08x}", end=" | ", file=log_write)
             print(f"INST: {inst:08x}", end=" | ", file=log_write)
+
+            index = 4 * number
             if len(out) == 1:
                 inst_bin_str = format(inst, '032b')
-                dut.IM.instruction_memory[decoded].value = BinaryValue(inst_bin_str, n_bits=32)
-                decoded = out[0]
-                print(f"READ: {decoded.mnemonic} {decoded.op_str}", file=log_write)
+                for i in range(4):
+                    dut.IM.instruction_memory[index + i].value = \
+                        BinaryValue(inst_bin_str[8 * i: 8 * i + 8], n_bits=8)
+                index = out[0]
+                print(f"READ: {index.mnemonic} {index.op_str}", file=log_write)
             else:
                 print(f"XXX SKIPPED (error={len(out)}) XXX", file=log_write)
         
@@ -82,7 +86,7 @@ async def spike_evaluation_trace_test(dut):
 
 
             pc = dut.addr.value.integer
-            sim_addr = program_entry_point + pc * 4
+            sim_addr = program_entry_point + pc
             sim_inst = dut.instruction.value.integer
             
             ibytes = spk_inst.to_bytes(4, byteorder='little')
@@ -94,25 +98,35 @@ async def spike_evaluation_trace_test(dut):
             eval_data.append([i, 
                               f"0x{spk_addr:08x}", 
                               f"0x{spk_inst:08x} ({inst_txt})", 
-                              f"{pc:08x}"])
+                              f"0x{sim_inst:08x}"])
 
-            if (sim_inst != spk_inst or sim_addr != spk_addr):
+            addr_check = sim_addr == spk_addr
+            inst_check = sim_inst == spk_inst
+            if (not addr_check or not inst_check):
                 mm_data = [
                         ["ADDRESS", f"0x{spk_addr:08x}", f"0x{sim_addr:08x}"],
                         ["INSTRUTION", f"0x{spk_inst:08x}", f"0x{sim_inst:08x}"],
                         ["INDEX", f"{i}", ""],
                     ]
-                raise Exception(f"Mismatch found\n{mm_table}")
+                if inst_check:
+                    raise Exception(f"Mismatch found on addresses\n{mm_table}")
+                elif addr_check:
+                    raise Exception(f"Mismatch found on instructions\n{mm_table}")
+                else:
+                    raise Exception(f"Mismatch found on addr and inst\n{mm_table}")
+
+
+
 
     except Exception as e:
-        eval_table = tabulate(eval_data, eval_headers, tablefmt="grid")
         mm_table = tabulate(mm_data, headers=mm_headers, tablefmt="grid")
 
-        print(eval_table, file=log_trace)
-        print(file=log_trace)
         print(mm_table, file=log_trace)
         raise Exception('\n' * 3 + str(e) + '\n' * 3)
     finally:
+        eval_table = tabulate(eval_data, eval_headers, tablefmt="grid")
+        print(eval_table, file=log_trace)
+        print(file=log_trace)
         log_trace.close()
         log_write.close()
 
